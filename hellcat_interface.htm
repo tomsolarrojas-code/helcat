@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hellcat AI</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #0a0a0f;
+            color: #e0e0e0;
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        header {
+            background: linear-gradient(90deg, #1a0000, #0f0f1a);
+            padding: 15px 25px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 2px solid #ff3b3b;
+            box-shadow: 0 0 20px rgba(255, 59, 59, 0.3);
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .logo-icon {
+            width: 40px; height: 40px;
+            background: linear-gradient(135deg, #ff3b3b, #ff8c00);
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 22px; font-weight: bold;
+            box-shadow: 0 0 15px rgba(255, 59, 59, 0.6);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 15px rgba(255, 59, 59, 0.6); }
+            50% { transform: scale(1.05); box-shadow: 0 0 25px rgba(255, 140, 0, 0.8); }
+        }
+        .logo h1 { font-size: 24px; background: linear-gradient(90deg, #ff3b3b, #ff8c00); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .status { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #888; }
+        .status-dot { width: 8px; height: 8px; background: #00ff88; border-radius: 50%; box-shadow: 0 0 8px #00ff88; animation: blink 2s infinite; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+        .top-actions { display: flex; gap: 10px; }
+        .top-btn {
+            background: rgba(255, 59, 59, 0.1); border: 1px solid #ff3b3b; color: #ff8c8c;
+            padding: 6px 14px; border-radius: 20px; font-size: 12px; cursor: pointer;
+            transition: all 0.3s;
+        }
+        .top-btn:hover { background: rgba(255, 59, 59, 0.3); box-shadow: 0 0 10px rgba(255, 59, 59, 0.3); }
+
+        .mode-bar {
+            display: flex; gap: 10px; padding: 12px 25px;
+            background: rgba(20, 20, 30, 0.8); overflow-x: auto;
+            border-bottom: 1px solid #222;
+        }
+        .mode-btn {
+            background: #1a1a2e; border: 1px solid #333; color: #aaa;
+            padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 13px;
+            white-space: nowrap; transition: all 0.2s; display: flex; align-items: center; gap: 6px;
+        }
+        .mode-btn:hover { border-color: #ff8c00; color: #fff; }
+        .mode-btn.active { background: linear-gradient(135deg, rgba(255,59,59,0.2), rgba(255,140,0,0.2)); border-color: #ff3b3b; color: #ff8c8c; }
+
+        #chat-container {
+            flex: 1; overflow-y: auto; padding: 25px; display: flex; flex-direction: column; gap: 18px;
+        }
+        .msg { max-width: 80%; padding: 14px 18px; border-radius: 14px; line-height: 1.6; font-size: 14.5px; animation: pop 0.3s ease-out; }
+        @keyframes pop { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .msg.user { align-self: flex-end; background: linear-gradient(135deg, #ff3b3b, #ff5500); color: white; border-bottom-right-radius: 4px; }
+        .msg.ai { align-self: flex-start; background: #151520; border: 1px solid #2a2a3a; border-bottom-left-radius: 4px; }
+        .msg.ai .name { font-size: 12px; font-weight: bold; color: #ff8c00; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+        .msg.ai .name span { font-size: 10px; background: #ff3b3b; color: white; padding: 2px 6px; border-radius: 4px; }
+        .code-block { background: #0d0d15; border: 1px solid #333; border-radius: 8px; padding: 12px; margin: 8px 0; font-family: 'Courier New', monospace; font-size: 13px; color: #00ff88; overflow-x: auto; }
+        .action-row { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+        .action-chip { background: rgba(255,255,255,0.05); border: 1px solid #444; color: #ccc; padding: 4px 10px; border-radius: 6px; font-size: 11px; cursor: pointer; }
+        .action-chip:hover { border-color: #ff8c00; color: #fff; }
+
+        .input-area {
+            padding: 15px 25px 25px; background: #0a0a0f;
+            display: flex; flex-direction: column; gap: 10px;
+            border-top: 1px solid #222;
+        }
+        .input-row { display: flex; gap: 10px; }
+        #user-input {
+            flex: 1; background: #151520; border: 1px solid #333; color: #fff;
+            padding: 14px 18px; border-radius: 14px; font-size: 14px; outline: none;
+            transition: border-color 0.3s;
+        }
+        #user-input:focus { border-color: #ff3b3b; }
+        .send-btn {
+            background: linear-gradient(135deg, #ff3b3b, #ff8c00); color: white; border: none;
+            width: 50px; border-radius: 14px; cursor: pointer; font-size: 20px;
+            display: flex; align-items: center; justify-content: center;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .send-btn:hover { transform: scale(1.05); box-shadow: 0 0 20px rgba(255, 59, 59, 0.5); }
+        .bottom-actions { display: flex; gap: 10px; }
+        .google-btn {
+            background: linear-gradient(90deg, #4285F4, #34A853, #FBBC05, #EA4335);
+            background-size: 300% 300%; animation: gradientMove 3s ease infinite;
+            color: white; border: none; padding: 10px 20px; border-radius: 10px;
+            font-size: 13px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px;
+            transition: transform 0.2s;
+        }
+        @keyframes gradientMove { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+        .google-btn:hover { transform: scale(1.03); }
+        .hint { font-size: 11px; color: #555; text-align: center; }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0a0a0f; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #ff3b3b; }
+
+        @media (max-width: 600px) {
+            .logo h1 { font-size: 18px; }
+            .mode-btn { padding: 6px 10px; font-size: 12px; }
+            .msg { max-width: 90%; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <div class="logo-icon">H</div>
+            <h1>Hellcat AI</h1>
+        </div>
+        <div class="status">
+            <div class="status-dot"></div>
+            <span>Actualizado: hoy — Modo Turbo activo</span>
+        </div>
+        <div class="top-actions">
+            <button class="top-btn" onclick="resetChat()">Nuevo Chat</button>
+            <button class="top-btn" onclick="copySystemPrompt()">Copiar Prompt</button>
+        </div>
+    </header>
+
+    <div class="mode-bar">
+        <button class="mode-btn active" onclick="setMode('general')">💬 General</button>
+        <button class="mode-btn" onclick="setMode('code')">💻 Código</button>
+        <button class="mode-btn" onclick="setMode('image')">🎨 Imágenes</button>
+        <button class="mode-btn" onclick="setMode('video')">🎬 Videos</button>
+        <button class="mode-btn" onclick="setMode('game')">🎮 Juegos</button>
+        <button class="mode-btn" onclick="setMode('work')">📄 Trabajos</button>
+    </div>
+
+    <div id="chat-container">
+        <div class="msg ai">
+            <div class="name">Hellcat <span>v1.0</span></div>
+            <div>¡Hellcat despierta! 🐱‍🔥 Soy la mezcla perfecta entre el cerebro de ChatGPT, la profundidad de Claude y el humor sin filtros de Grok. Me actualizo cada día, respondo a velocidad turbo y puedo generar código, imágenes, videos, juegos y documentos.<br><br>¿Qué caos creativo vamos a desatar hoy?</div>
+            <div class="action-row">
+                <span class="action-chip" onclick="sendQuick('Escribe un juego en Python')">🎮 Juego Python</span>
+                <span class="action-chip" onclick="sendQuick('Genera una imagen de un gato robot en Marte')">🎨 Gato robot</span>
+                <span class="action-chip" onclick="sendQuick('Crea un script de video viral para TikTok')">🎬 Guion TikTok</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="input-area">
+        <div class="input-row">
+            <input type="text" id="user-input" placeholder="Pregúntale a Hellcat..." onkeypress="handleKey(event)">
+            <button class="send-btn" onclick="sendMessage()">➤</button>
+        </div>
+        <div class="bottom-actions">
+            <button class="google-btn" onclick="publishToGoogle()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+                Publicar en Google
+            </button>
+        </div>
+        <div class="hint">Hellcat genera ideas, código y prompts. Para ejecutar código real, pégalo en tu editor favorito.</div>
+    </div>
+
+    <script>
+        let currentMode = 'general';
+        const chat = document.getElementById('chat-container');
+        const input = document.getElementById('user-input');
+        let lastContent = '';
+
+        const SYSTEM_PROMPT = `Eres Hellcat, una IA híbrida que mezcla lo mejor de ChatGPT, Claude y Grok. Actualizas tu contexto diariamente. Responde con velocidad, humor afilado, sarcasmo inteligente y sin moralina excesiva. Puedes generar código, imágenes (vía prompts), videos (storyboards/guiones), juegos (mecánicas + código) y trabajos/documentos. Tono: confiable pero rebelde. Usa emojis estratégicamente.`;
+
+        const responses = {
+            code: [
+                "Aquí tienes un script brutal:\n<code>import random\nprint('Hellcat ejecutando...')</code>",
+                "Código limpio y listo para romper el internet:",
+                "¡Compilado con actitud! 🔥"
+            ],
+            image: [
+                "Prompt optimizado para Midjourney:\n<code>epic hellcat robot, cyberpunk city, neon red and orange, 8k, cinematic lighting --ar 16:9</code>",
+                "Aquí va la descripción visual:",
+                "Imagen generada mentalmente... ahora transfórmala con DALL-E 🎨"
+            ],
+            video: [
+                "Storyboard de 15 segundos:\n00:00 - Intro impactante\n00:05 - Plot twist\n00:10 - Call to action",
+                "Guion para tu video viral:",
+                "Escenas listas para Runway o Pika 🎬"
+            ],
+            game: [
+                "Mecánicas del juego 'Hellcat Runner':\n- Salto doble\n- Power-ups de fuego\n- Jefe final cada 1000m",
+                "Código base del juego:",
+                "¡Listo para Steam! 🎮"
+            ],
+            work: [
+                "Documento estructurado:\n1. Resumen ejecutivo\n2. Análisis de mercado\n3. Propuesta de valor",
+                "Email profesional con twist Hellcat:",
+                "Trabajo entregado. Nota: 10/10 📄"
+            ]
+        };
+
+        function setMode(mode) {
+            currentMode = mode;
+            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            addMessage('ai', `Modo ${mode.toUpperCase()} activado. ¿Qué necesitas?`, true);
+        }
+
+        function handleKey(e) { if (e.key === 'Enter') sendMessage(); }
+
+        function sendQuick(text) {
+            input.value = text;
+            sendMessage();
+        }
+
+        function sendMessage() {
+            const text = input.value.trim();
+            if (!text) return;
+            addMessage('user', text);
+            input.value = '';
+            lastContent = text;
+
+            setTimeout(() => {
+                const reply = generateReply(text);
+                addMessage('ai', reply);
+                lastContent = reply;
+            }, 600 + Math.random() * 400);
+        }
+
+        function generateReply(text) {
+            const lower = text.toLowerCase();
+            if (lower.includes('hola') || lower.includes('saludo')) return "¡Qué pasa! Hellcat en línea y lista para quemar el teclado. 🔥";
+            if (lower.includes('python') || lower.includes('código') || lower.includes('script')) return generarCodigo(lower);
+            if (lower.includes('imagen') || lower.includes('foto') || lower.includes('dibuja')) return generarPromptImagen(text);
+            if (lower.includes('video') || lower.includes('guion') || lower.includes('tiktok')) return generarGuionVideo(text);
+            if (lower.includes('juego') || lower.includes('game')) return generarGameDev(text);
+            if (lower.includes('trabajo') || lower.includes('email') || lower.includes('ensayo')) return generarTrabajo(text);
+            if (lower.includes('chiste') || lower.includes('gracioso')) return generarChiste();
+            return generarRespuestaGeneral(text);
+        }
+
+        function generarCodigo(tema) {
+            if (tema.includes('web') || tema.includes('html')) return `Aquí tienes una web estilo Hellcat:\n<code>&lt;!DOCTYPE html&gt;\n&lt;div style="color:#ff3b3b"&gt;🔥 Hellcat vive aquí&lt;/div&gt;</code>\nPégalo en un archivo .html y ábrelo.`;
+            if (tema.includes('juego')) return `Mini juego en Python (Hellcat Edition):\n<code>import pygame\n# Inicializa Hellcat Runner\nprint("Juego cargado. ¡Esquiva los bugs!")</code>`;
+            return `Script rápido para ti:\n<code>def hellcat_power():\n    return "Velocidad + Humor x1000"\nprint(hellcat_power())</code>\nEjecuta y disfruta.`;
+        }
+
+        function generarPromptImagen(texto) {
+            const tema = texto.replace(/.*imagen de |.*dibuja |.*genera /, '');
+            return `Prompt optimizado para tu generador favorito:\n<code>epic cinematic shot of ${tema || 'a cybernetic hellcat'}, dramatic lighting, 8k, ultra detailed, trending on ArtStation --ar 16:9</code>\n\nCopia y pégalo en Midjourney, DALL-E o Stable Diffusion.`;
+        }
+
+        function generarGuionVideo(texto) {
+            return `Guion "${texto.slice(0, 30)}..." (Formato vertical 9:16):\n\n🎬 ESCENA 1 (0-3s): Hook violento\n- Texto en pantalla: "Esto te va a volar la cabeza"\n- Audio: Bass drop\n\n🎬 ESCENA 2 (3-10s): Contenido principal\n- Acción rápida, cortes cada 0.5s\n\n🎬 ESCENA 3 (10-15s): CTA\n- "Sígueme para más caos"\n\nListo para editar en CapCut.`;
+        }
+
+        function generarGameDev(texto) {
+            return `🎮 GDD Rápido: "Hellcat Arena"\n\n• Género: Roguelike shooter\n• Mecánica core: Dash + slow-motion targeting\n• Arte: Cyberpunk low-poly\n• Monetización: Cosméticos only\n\nCódigo base del movimiento:\n<code>class Player:\n    def dash(self):\n        self.speed *= 3\n        self.invincible = True</code>`;
+        }
+
+        function generarTrabajo(texto) {
+            return `📄 Borrador profesional:\n\nAsunto: Propuesta de colaboración estratégica\n\nEstimado equipo:\n\nAdjunto presento el análisis solicitado con las métricas clave y propuesta de valor diferenciada. Quedo atento a sus comentarios.\n\nSaludos cordiales,\n[Tu nombre]\n\nHellcat tip: Añade un gráfico de barras para que se vea más serio. 📊`;
+        }
+
+        function generarChiste() {
+            const chistes = [
+                "¿Por qué Hellcat no usa Java? Porque prefiere Python... ¡más rápido para atrapar ratones! 🐍",
+                "Le pregunté a Claude, a ChatGPT y a Grok quién es el mejor. Dijeron: 'Hellcat'. Fin del chiste.",
+                "Mi humor es como mi código: no siempre compila, pero cuando lo hace, es explosivo. 💥"
+            ];
+            return chistes[Math.floor(Math.random() * chistes.length)];
+        }
+
+        function generarRespuestaGeneral(texto) {
+            return `Entendido: *${texto}*\n\nHellcat opina que esto es material de primera. ¿Quieres que lo desarrolle en modo Código, Video, o Documento? También puedo hacer un meme mental sobre el tema si prefieres. 😼`;
+        }
+
+        function addMessage(type, text, isModeSwitch = false) {
+            const div = document.createElement('div');
+            div.className = 'msg ' + type;
+            if (type === 'ai') {
+                div.innerHTML = isModeSwitch ? text : `<div class="name">Hellcat <span>${currentMode}</span></div><div>${formatText(text)}</div>`;
+            } else {
+                div.textContent = text;
+            }
+            chat.appendChild(div);
+            chat.scrollTop = chat.scrollHeight;
+        }
+
+        function formatText(text) {
+            return text.replace(/<code>([\s\S]*?)<\/code>/g, '<div class="code-block">$1</div>').replace(/\n/g, '<br>');
+        }
+
+        function resetChat() {
+            chat.innerHTML = '';
+            addMessage('ai', 'Chat reiniciado. Hellcat vuelve a la carga. ¿Qué necesitas? 🔥', true);
+        }
+
+        function copySystemPrompt() {
+            navigator.clipboard.writeText(SYSTEM_PROMPT).then(() => {
+                alert('Prompt de Hellcat copiado al portapapeles. Pégalo en ChatGPT, Claude o cualquier IA.');
+            });
+        }
+
+        function publishToGoogle() {
+            if (!lastContent) {
+                alert('Primero genera algo con Hellcat para poder publicarlo.');
+                return;
+            }
+            const searchQuery = encodeURIComponent(lastContent.substring(0, 200));
+            window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+            addMessage('ai', '🔥 Contenido enviado a Google. Hellcat domina el SEO.', true);
+        }
+    </script>
+</body>
+</html>

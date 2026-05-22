@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ChatGPT</title>
+    <title>Hellcat</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -92,7 +92,10 @@
         header h1 {
             font-size: 18px;
             font-weight: 600;
-            color: #0d0d0d;
+            background: linear-gradient(90deg, #ff3b3b, #ff8c00);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
         #chat-container {
@@ -120,7 +123,7 @@
         }
 
         .msg.user .content {
-            background: #10a37f;
+            background: #ff3b3b;
             color: white;
             padding: 12px 16px;
             border-radius: 18px;
@@ -136,7 +139,7 @@
         .msg.ai .avatar {
             width: 32px;
             height: 32px;
-            background: #10a37f;
+            background: linear-gradient(135deg, #ff3b3b, #ff8c00);
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -184,11 +187,11 @@
         }
 
         #user-input:focus {
-            border-color: #10a37f;
+            border-color: #ff3b3b;
         }
 
         .send-btn {
-            background: #10a37f;
+            background: linear-gradient(135deg, #ff3b3b, #ff8c00);
             color: white;
             border: none;
             width: 44px;
@@ -204,7 +207,7 @@
         }
 
         .send-btn:hover {
-            background: #0d8f6f;
+            transform: scale(1.05);
         }
 
         .send-btn:disabled {
@@ -215,7 +218,7 @@
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #f7f7f8; }
         ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #bfbfbf; }
+        ::-webkit-scrollbar-thumb:hover { background: #ff3b3b; }
 
         @media (max-width: 768px) {
             .sidebar { display: none; }
@@ -234,14 +237,14 @@
 
     <div class="main-container">
         <header>
-            <h1>ChatGPT</h1>
+            <h1>Hellcat</h1>
         </header>
 
         <div id="chat-container"></div>
 
         <div class="input-area">
             <div class="input-wrapper">
-                <input type="text" id="user-input" placeholder="Escribe tu pregunta..." onkeypress="handleKey(event)">
+                <input type="text" id="user-input" placeholder="Pregúntale a Hellcat..." onkeypress="handleKey(event)">
                 <button class="send-btn" onclick="sendMessage()" id="send-btn">➤</button>
             </div>
         </div>
@@ -253,7 +256,7 @@
         const sendBtn = document.getElementById('send-btn');
         const historyList = document.getElementById('history-list');
 
-        let chats = JSON.parse(localStorage.getItem('chatgpt_chats')) || [];
+        let chats = JSON.parse(localStorage.getItem('hellcat_chats')) || [];
         let currentChatId = null;
 
         function generateId() {
@@ -261,7 +264,7 @@
         }
 
         function loadChats() {
-            chats = JSON.parse(localStorage.getItem('chatgpt_chats')) || [];
+            chats = JSON.parse(localStorage.getItem('hellcat_chats')) || [];
             updateHistoryUI();
         }
 
@@ -286,7 +289,7 @@
                         chatData.title = firstMsg.textContent.substring(0, 40);
                     }
                 }
-                localStorage.setItem('chatgpt_chats', JSON.stringify(chats));
+                localStorage.setItem('hellcat_chats', JSON.stringify(chats));
             }
         }
 
@@ -324,7 +327,7 @@
             div.className = 'msg ' + type;
 
             if (type === 'ai') {
-                div.innerHTML = `<div class="avatar">✓</div><div class="content">${text}</div>`;
+                div.innerHTML = `<div class="avatar">H</div><div class="content">${text}</div>`;
             } else {
                 div.innerHTML = `<div class="content">${text}</div>`;
             }
@@ -351,7 +354,7 @@
             const lower = userText.toLowerCase();
 
             if (lower.includes('hola')) {
-                return 'Hola, ¿cómo estás? ¿En qué puedo ayudarte?';
+                return 'Hola, ¿qué necesitas?';
             }
 
             if (lower.includes('torta') && lower.includes('tres leches')) {
@@ -377,22 +380,22 @@ Preparación:
             }
 
             if (lower.includes('receta')) {
-                return 'Claro, dime qué quieres cocinar y te doy la receta con ingredientes y pasos.';
+                return 'Dime qué quieres cocinar y te doy la receta.';
             }
 
             if (lower.includes('código') || lower.includes('python') || lower.includes('javascript') || lower.includes('html')) {
-                return 'Dime exactamente qué código necesitas y te lo proporciono.';
+                return 'Dime exactamente qué código necesitas.';
             }
 
             if (lower.includes('gracias')) {
-                return 'De nada, ¿hay algo más en lo que pueda ayudarte?';
+                return 'De nada, ¿algo más?';
             }
 
             if (lower.includes('cuéntame')) {
-                return 'Me encantaría saber más. ¿Sobre qué tema específico quieres que te cuente?';
+                return 'Claro, sobre qué tema quieres que te cuente?';
             }
 
-            return 'Entendido. Dime más sobre lo que necesitas y haré mi mejor esfuerzo para ayudarte.';
+            return 'Entendido. Dime más sobre lo que necesitas.';
         }
 
         function sendMessage() {
